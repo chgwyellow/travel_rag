@@ -6,7 +6,7 @@
 
 📚 Retrieval-Augmented Generation System for Tourism Information
 
-LangChain • Google Gemini Pro • ChromaDB • Pinecone • Streamlit
+LangChain • Gemini 2.5 Flash • ChromaDB • Pinecone • Streamlit
 
 ## 🌐 Live Demo
 
@@ -44,7 +44,7 @@ LangChain • Google Gemini Pro • ChromaDB • Pinecone • Streamlit
 
 This project builds a complete Retrieval-Augmented Generation (RAG) system for tourism information using modern LLM technologies.
 
-**Current Status:** Data exploration and pipeline design phase
+**Current Status:** Vector database setup in progress (Chapters 01-04 completed)
 
 **Goal:** Create an AI-powered travel assistant that can answer questions about Taiwan tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini Pro.
 
@@ -70,8 +70,8 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **LLM** | Google Gemini Pro | Text generation and question answering |
-| **Embedding** | Gemini Embedding API | Document vectorization |
+| **LLM** | Gemini 2.5 Flash | Text generation and question answering |
+| **Embedding** | text-embedding-004 | Document vectorization (768 dimensions) |
 | **Vector DB (Dev)** | ChromaDB | Local vector storage and retrieval |
 | **Vector DB (Prod)** | Pinecone | Cloud-based vector database |
 | **RAG Framework** | LangChain | Pipeline orchestration |
@@ -113,7 +113,8 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 │  ├─ rag/                # RAG pipeline implementation
 │  │  └─ pipeline.py
 │  ├─ utils/              # Utilities (logger, helpers)
-│  │  └─ logger.py
+│  │  ├─ logger.py
+│  │  └─ emoji_log.py    # Emoji-enhanced logging for notebooks
 │  └─ config.py           # Configuration management
 │
 ├─ scripts/               # Utility scripts
@@ -235,13 +236,16 @@ poetry run streamlit run src/app/app.py
 **Implementation:**
 
 - Document format: Name + Region + Address + Description + Metadata
-- Chunking: RecursiveCharacterTextSplitter (chunk_size=500, overlap=50)
+- Text field cleaning: fillna('') for consistent handling
+- Chunking analysis: Only 1.9% of documents exceed 500 characters
+- Decision: No chunking needed for current dataset
 - Output format: JSON with id, content, metadata
 
 **Output:**
 
-- Processed documents ready for embedding
-- Chunked text for optimal retrieval
+- `data/processed/documents.json` - 5,086 processed documents
+- Average document length: ~204 characters
+- Ready for embedding generation
 
 </details>
 
@@ -254,23 +258,28 @@ poetry run streamlit run src/app/app.py
 
 **Objectives:**
 
-- Test Google Gemini Pro API connectivity
-- Verify embedding generation
+- Set up Gemini API key from Google AI Studio
+- Test Gemini 2.5 Flash for text generation
+- Test text-embedding-004 for embeddings
+- Verify embedding dimensions and consistency
 - Check API rate limits and quotas
-- Validate response quality
 
-**Tests:**
+**Key Findings:**
 
-- LLM text generation
-- Embedding vector dimensions
-- API response time
-- Error handling
+- **LLM (Gemini 2.5 Flash):**
+  - Rate limit: 20 requests/day (free tier)
+  - Status: Working, sufficient for development
+  
+- **Embedding (text-embedding-004):**
+  - Dimension: 768 (consistent across all text lengths)
+  - Rate limit: No strict limit detected (25+ calls successful)
+  - Supports both English and Chinese
 
 **Output:**
 
-- Confirmed API functionality
-- Baseline performance metrics
-- Rate limit understanding
+- Confirmed API functionality for both LLM and embedding
+- API quota summary and usage recommendations
+- Ready for vector database ingestion
 
 </details>
 
@@ -284,29 +293,39 @@ poetry run streamlit run src/app/app.py
 **Objectives:**
 
 - Initialize ChromaDB for local development
-- Generate embeddings for all documents
+- Create persistent collection for Taiwan attractions
+- Generate embeddings for all 5,086 documents
 - Ingest documents into vector database
-- Test retrieval functionality
+- Test similarity search functionality
 
 **Implementation:**
 
-- ChromaDB persistent client
-- Batch embedding generation (to respect API limits)
-- Metadata storage for filtering
-- Similarity search testing
+- ChromaDB PersistentClient (stored in `./chroma_db/`)
+- Collection with metadata filtering support
+- Batch embedding generation using text-embedding-004
+- Progress tracking for large-scale ingestion
 
-**Output:**
+**Status:**
 
-- Populated vector database
+- ✅ Step 01: ChromaDB initialized successfully
+- ⏳ Step 02: Collection creation pending
+- ⏳ Step 03: Embedding generation pending
+- ⏳ Step 04: Retrieval testing pending
+
+**Output (when completed):**
+
+- Local vector database ready for RAG pipeline
+- All 5,086 documents embedded and searchable
 - Verified retrieval accuracy
-- Performance benchmarks
 
 </details>
 
 ---
 
+## 🚧 Upcoming Chapters
+
 <details>
-<summary><b>🔗 Chapter 05 — RAG Pipeline Implementation</b></summary>
+<summary><b>🔗 Chapter 05 — RAG Pipeline Implementation</b> (Not started)</summary>
 
 📓 `05_rag_pipeline.ipynb`
 

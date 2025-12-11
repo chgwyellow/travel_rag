@@ -34,8 +34,8 @@ PINECONE_ENV = os.getenv("PINECONE_ENV")
 # ===================================
 # LLM Settings
 # ===================================
-LLM_MODEL = "gemini-pro"
-EMBEDDING_MODEL = "models/embedding-001"
+LLM_MODEL = "gemini-flash-latest"
+EMBEDDING_MODEL = "models/text-embedding-004"
 TEMPERATURE = 0.7  # 0.0 = deterministic, 1.0 = creative
 
 # ===================================
