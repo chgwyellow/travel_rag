@@ -30,7 +30,7 @@ LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV")
-OPENTRIPMAP_API_KEY = os.getenv("OPENTRIPMAP_API_KEY")
+GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY")
 
 # ===================================
 # LLM Settings
@@ -55,10 +55,11 @@ COLLECTION_NAME = "global_attractions"
 # ===================================
 # Data Source Settings
 # ===================================
-TARGET_CITY = "New York"  # Starting city
+GEOAPIFY_BASE_URL = "https://api.geoapify.com/v2/places"
+TARGET_CITY = "Seattle"  # Starting city
 CITY_BBOX = {  # Bounding box for New York
-    "lon_min": -74.05,
-    "lat_min": 40.68,
-    "lon_max": -73.90,
-    "lat_max": 40.88,
+    "lon_min": -122.45,
+    "lat_min": 47.48,
+    "lon_max": -122.22,
+    "lat_max": 47.73,
 }
