@@ -30,12 +30,13 @@ LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV")
+OPENTRIPMAP_API_KEY = os.getenv("OPENTRIPMAP_API_KEY")
 
 # ===================================
 # LLM Settings
 # ===================================
 LLM_MODEL = "gemini-flash-latest"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2 "
 TEMPERATURE = 0.7  # 0.0 = deterministic, 1.0 = creative
 
 # ===================================
@@ -49,4 +50,15 @@ TOP_K = 3  # number of documents to retrieve
 # Vector Database
 # ===================================
 USE_PINECONE = False  # False = ChromaDB (local), True = Pinecone (cloud)
-COLLECTION_NAME = "taiwan_travel"
+COLLECTION_NAME = "global_attractions"
+
+# ===================================
+# Data Source Settings
+# ===================================
+TARGET_CITY = "New York"  # Starting city
+CITY_BBOX = {  # Bounding box for New York
+    "lon_min": -74.05,
+    "lat_min": 40.68,
+    "lon_max": -73.90,
+    "lat_max": 40.88,
+}

@@ -340,26 +340,34 @@ poetry run streamlit run src/app/app.py
 ## 🚧 Upcoming Chapters
 
 <details>
-<summary><b>🔗 Chapter 05 — RAG Pipeline Implementation</b> (Not started)</summary>
+<summary><b>🔗 Chapter 05 — RAG Pipeline Implementation</b> (In Progress)</summary>
 
 📓 `05_rag_pipeline.ipynb`
 
 **Objectives:**
 
 - Build end-to-end RAG pipeline using LangChain
-- Integrate retriever and LLM
+- Integrate retriever and LLM with modern LCEL approach
 - Test question-answering functionality
 - Optimize retrieval parameters
 
 **Components:**
 
-- Retriever: ChromaDB with top-k=3
-- LLM: Gemini Pro with custom prompt template
-- Chain: RetrievalQA with source documents
+- Retriever: ChromaDB with HuggingFaceEmbeddings (all-MiniLM-L6-v2)
+- LLM: Gemini 2.5 Flash with custom prompt template
+- Chain: LCEL (LangChain Expression Language) pipeline
+- Top-k retrieval: 3 most relevant documents
+
+**Implementation:**
+
+- Modern LCEL syntax for flexible pipeline composition
+- Custom prompt template for Taiwan tourism Q&A
+- Source document tracking and citations
+- Streaming support for real-time responses
 
 **Output:**
 
-- Working RAG pipeline
+- Working RAG pipeline using LCEL
 - Modularized code in `src/rag/pipeline.py`
 - Test results and examples
 
@@ -483,21 +491,21 @@ subgraph DATA[Data Processing]
 end
 
 subgraph EMBED[Embedding & Storage]
-    C1["🤖 Gemini Embedding API<br>Generate Vectors"]
+    C1["🤖 SentenceTransformer<br>all-MiniLM-L6-v2<br>384-dim Vectors"]
     C2["💾 Vector Database<br>ChromaDB / Pinecone"]
 end
 
 D["👤 User Query<br>Natural Language Question"]
 
 subgraph RAG[RAG Pipeline]
-    E1["🔍 Query Embedding<br>Gemini API"]
+    E1["🔍 Query Embedding<br>SentenceTransformer"]
     E2["🎯 Similarity Search<br>Top-K Retrieval"]
     E3["📄 Context Assembly<br>Retrieved Documents"]
 end
 
 subgraph LLM[LLM Generation]
     F1["💬 Prompt Construction<br>Context + Query"]
-    F2["🧠 Gemini Pro<br>Response Generation"]
+    F2["🧠 Gemini 2.5 Flash<br>Response Generation"]
 end
 
 G["✨ AI Response<br>+ Source Citations"]
