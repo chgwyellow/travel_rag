@@ -27,7 +27,7 @@ def collect_city_attraction(city_name, city_bbox, api_key, output_dir) -> list:
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(filtered, f, indent=2, ensure_ascii=False)
 
-    save(f"Filtered attractions saved at: {output_dir}")
+    save(f"Filtered attractions saved at: {output_file.name}")
 
     return filtered
 

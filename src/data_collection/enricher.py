@@ -33,7 +33,7 @@ def enrich_attractions(
 
     # 1. Fetch Wikipedia descriptions
     info("Fetching Wikipedia descriptions...")
-    enriched = batch_fetch_descriptions(features=filtered_features, email)
+    enriched = batch_fetch_descriptions(features=filtered_features, email=email)
 
     # 2. Validate data quality
     info("Validating data quality...")
@@ -42,8 +42,11 @@ def enrich_attractions(
     # 3. Save enriched data
     city = enriched[0].get("city", "")
     output_file = output_dir / f"{city}_attractions_enriched.json"
+
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(enriched, f, indent=2, ensure_ascii=False)
+
+    save(f"Enriched attractions saved to: {output_file.name}")
 
     return enriched, stats
 
