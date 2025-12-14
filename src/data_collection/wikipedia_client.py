@@ -131,30 +131,32 @@ def batch_fetch_descriptions(
         - Progress is logged for each attraction
     """
     attraction_list = []
+    success_count = 0
+    error_count = 0
 
-    for i, feature in enumerate(features, 1):
+    for feature in features:
         # Extract data
         attraction = extract_attraction_data(feature)
 
         # Check the wiki_code
         wiki_code = attraction.get("wiki_code")
-        if not wiki_code:
-            attraction["description"] = None
+        if wiki_code:
+            # Obtain description
+            description = fetch_description(wiki_code=wiki_code, email=email)
+            attraction["description"] = description
+
+            if description:
+                success_count += 1
+                success(f"{attraction['name']}, success counts: {success_count}")
+            else:
+                error_count += 1
+                error(
+                    f"{attraction['name']} - No description, error counts: {error_count}"
+                )
+
             attraction_list.append(attraction)
-            continue
 
-        # Obtain description
-        description = fetch_description(wiki_code=wiki_code, email=email)
-        attraction["description"] = description
-
-        if description:
-            success(f"[{i}/{len(features)}] {attraction['name']}")
-        else:
-            error(f"[{i}/{len(features)}] {attraction['name']} - No description")
-
-        attraction_list.append(attraction)
-
-        # Rate limiting
-        time.sleep(rate_limit)
+            # Rate limiting
+            time.sleep(rate_limit)
 
     return attraction_list
