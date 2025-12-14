@@ -44,25 +44,27 @@ LangChain • Gemini 2.5 Flash • ChromaDB • Pinecone • Streamlit
 
 This project builds a complete Retrieval-Augmented Generation (RAG) system for tourism information using modern LLM technologies.
 
-**Current Status:** Vector database complete, ready for RAG pipeline (Chapters 01-04 completed)
+**Current Status:** Data collection and enrichment complete (Chapters 01-02 completed)
 
-**Goal:** Create an AI-powered travel assistant that can answer questions about Taiwan tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini Pro.
+**Goal:** Create an AI-powered travel assistant that can answer questions about Seattle tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini.
 
 **Key Components:**
 
-- Government open data integration
+- Geoapify API for attraction data
+- Wikipedia API for detailed descriptions
 - Vector database for semantic search
 - LangChain for RAG orchestration  
 - Streamlit for interactive web interface
 
 ## 📊 Current Dataset
 
-- **Region**: Taiwan
-- **Source**: [Taiwan Tourism Scenic Spots](https://media.taiwan.net.tw/XMLReleaseALL_public/scenic_spot_C_f.json)
-- **Records**: 5,086 attractions
-- **Coverage**: Taiwan (22 cities/counties)
-- **Format**: JSON (Government Open Data)
-- **Fields**: Name, Description, Address, Region, Opening Hours, Ticket Info, GPS Coordinates
+- **Region**: Seattle, Washington, USA
+- **Primary Source**: [Geoapify Places API](https://www.geoapify.com/)
+- **Secondary Source**: [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page)
+- **Records**: 62 attractions with Wikipedia descriptions
+- **Coverage**: Seattle metropolitan area
+- **Format**: JSON (enriched with location data and descriptions)
+- **Fields**: Name, Description, Location (lat/lon), Address, Categories, Place ID
 
 ## 🛠️ Tech Stack
 
@@ -92,37 +94,42 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 ```text
 .
 ├─ data/
-│  ├─ raw/                # Original JSON data
-│  │  └─ scenic_spot.json
-│  └─ processed/          # Processed documents & chunks
+│  ├─ raw/                      # Raw API responses
+│  │  └─ Seattle_attractions_raw.json
+│  └─ processed/                # Processed & enriched data
+│     ├─ seattle_attractions_with_wikipedia.json
+│     ├─ seattle_attractions_enriched_with_location.json
+│     ├─ seattle_attractions_documents.json
+│     └─ metadata.json
 │
-├─ chroma_db/             # ChromaDB vector storage (local)
+├─ chroma_db/                   # ChromaDB vector storage (local)
 │
-├─ notebook/              # Jupyter Notebooks (exploration)
-│  ├─ 01_data_exploration.ipynb
-│  ├─ 02_data_processing.ipynb
-│  ├─ 03_gemini_api_testing.ipynb
-│  ├─ 04_vectordb_setup.ipynb
-│  ├─ 05_rag_pipeline.ipynb
-│  └─ 06_streamlit_app.ipynb
+├─ notebook/                    # Jupyter Notebooks (exploration)
+│  ├─ 01_data_exploration.ipynb      # Geoapify API & data collection
+│  └─ 02_data_enrichment.ipynb       # Wikipedia descriptions & location data
 │
 ├─ src/
-│  ├─ app/                # Streamlit web application
+│  ├─ app/                      # Streamlit web application
 │  │  └─ app.py
-│  ├─ data_collection/    # Data scraping/API scripts
-│  ├─ rag/                # RAG pipeline implementation
+│  ├─ data_collection/          # Data pipeline modules
+│  │  ├─ geoapify_client.py    # Geoapify API client
+│  │  ├─ wikipedia_client.py   # Wikipedia API client
+│  │  ├─ collector.py          # Chapter 1 workflow
+│  │  ├─ enricher.py           # Chapter 2 workflow
+│  │  └─ document_builder.py   # RAG document formatting
+│  ├─ rag/                      # RAG pipeline implementation
 │  │  └─ pipeline.py
-│  ├─ utils/              # Utilities (logger, helpers)
+│  ├─ utils/                    # Utilities
 │  │  ├─ logger.py
-│  │  └─ emoji_log.py    # Emoji-enhanced logging for notebooks
-│  └─ config.py           # Configuration management
+│  │  └─ emoji_log.py          # Emoji-enhanced logging
+│  └─ config.py                 # Configuration management
 │
-├─ scripts/               # Utility scripts
+├─ scripts/                     # Utility scripts
 │  ├─ setup_chromadb.py
 │  ├─ ingest_data.py
 │  └─ test_rag.py
 │
-├─ .env.example           # Environment variables template
+├─ .env.example                 # Environment variables template
 ├─ .gitignore
 ├─ pyproject.toml
 ├─ poetry.lock
@@ -189,149 +196,79 @@ poetry run streamlit run src/app/app.py
 
 ---
 
-## Notebook / Chapter Overview
+## 📓 Notebook / Chapter Overview
 
 <details>
-<summary><b>📊 Chapter 01 — Data Exploration</b></summary>
+<summary><b>📊 Chapter 01 — Data Exploration (Geoapify API)</b></summary>
 
 📓 `01_data_exploration.ipynb`
 
 **Objectives:**
 
-- Load and inspect Taiwan tourism dataset
+- Set up Geoapify API for Seattle attractions
+- Fetch tourism data within Seattle bounding box
+- Filter attractions with Wikipedia links
 - Analyze data structure and quality
-- Check for missing values and duplicates
-- Examine text field distributions
-- Select fields suitable for RAG implementation
+- Design document format for RAG
+
+**Implementation:**
+
+- Geoapify Places API with `tourism` category filter
+- Bounding box: Seattle metropolitan area
+- Filtered for attractions with Wikipedia data
+- Saved raw data to `data/raw/Seattle_attractions_raw.json`
 
 **Key Findings:**
 
-- 5,086 attraction records across 22 cities/counties
-- Average description length: ~108 characters
-- No duplicate records
-- Some missing values in optional fields (Address, Opening Hours)
+- 62 attractions with Wikipedia links (from ~500 total)
+- All attractions have place_id, name, and location data
+- Wikipedia codes in format "language:title" (e.g., "en:Space Needle")
+- Categories include landmarks, museums, parks, monuments
 
 **Output:**
 
-- Understanding of data structure
-- Field selection for document creation
+- `seattle_attractions_with_wikipedia.json` - 62 filtered attractions
 - Document format design for RAG
+- Ready for Wikipedia enrichment
 
 </details>
 
 ---
 
 <details>
-<summary><b>⚙️ Chapter 02 — Data Processing & Chunking</b></summary>
+<summary><b>✨ Chapter 02 — Data Enrichment (Wikipedia API)</b></summary>
 
-📓 `02_data_processing.ipynb`
+📓 `02_data_enrichment.ipynb`
 
 **Objectives:**
 
-- Clean and standardize text data
-- Merge relevant fields into unified documents
-- Implement chunking strategy
-- Save processed documents for vector database ingestion
+- Fetch Wikipedia descriptions for all 62 attractions
+- Merge location data from raw Geoapify response
+- Perform data quality analysis and cleaning
+- Create RAG-ready document format
+- Validate data completeness
 
 **Implementation:**
 
-- Document format: Name + Region + Address + Description + Metadata
-- Text field cleaning: fillna('') for consistent handling
-- Chunking analysis: Only 1.9% of documents exceed 500 characters
-- Decision: No chunking needed for current dataset
-- Output format: JSON with id, content, metadata
+- Wikipedia API with User-Agent header
+- Batch fetching with 0.5s rate limiting
+- Location data merge (lat, lon, address, city, state, postcode)
+- Document format: Name + Location + Coordinates + Description
+
+**Data Quality Results:**
+
+- ✅ 62/62 attractions with descriptions (100% success)
+- ✅ 0 duplicates (based on place_id)
+- ✅ 27.4% descriptions contain special characters (normal)
+- ✅ Average description length: 860 characters
+- ✅ 100% data completeness
 
 **Output:**
 
-- `data/processed/documents.json` - 5,086 processed documents
-- Average document length: ~204 characters
-- Ready for embedding generation
-
-</details>
-
----
-
-<details>
-<summary><b>🤖 Chapter 03 — Gemini API Testing</b></summary>
-
-📓 `03_gemini_api_testing.ipynb`
-
-**Objectives:**
-
-- Set up Gemini API key from Google AI Studio
-- Test Gemini 2.5 Flash for text generation
-- Test text-embedding-004 for embeddings
-- Verify embedding dimensions and consistency
-- Check API rate limits and quotas
-
-**Key Findings:**
-
-- **LLM (Gemini 2.5 Flash):**
-  - Rate limit: 20 requests/day (free tier)
-  - Status: Working, sufficient for development
-  
-- **Embedding (text-embedding-004):**
-  - Dimension: 768 (consistent across all text lengths)
-  - Rate limit: No strict limit detected (25+ calls successful)
-  - Supports both English and Chinese
-
-**Output:**
-
-- Confirmed API functionality for both LLM and embedding
-- API quota summary and usage recommendations
+- `seattle_attractions_enriched_with_location.json` - Full enriched data
+- `seattle_attractions_documents.json` - RAG-ready documents
+- `metadata.json` - Updated with enrichment statistics
 - Ready for vector database ingestion
-
-</details>
-
----
-
-<details>
-<summary><b>💾 Chapter 04 — Vector Database Setup</b></summary>
-
-📓 `04_vectordb_setup.ipynb`
-
-**Objectives:**
-
-- Initialize ChromaDB for local development
-- Create persistent collection for Taiwan attractions
-- Generate embeddings for all 5,086 documents
-- Ingest documents into vector database
-- Test similarity search functionality
-
-**Implementation:**
-
-- ChromaDB PersistentClient (stored in `./chroma_db/`)
-- Collection with metadata filtering support
-- Batch embedding generation using text-embedding-004
-- Progress tracking for large-scale ingestion
-
-**Implementation:**
-
-- ChromaDB PersistentClient (stored in `./chroma_db/`)
-- Collection: `taiwan_attractions`
-- Embedding model: **all-MiniLM-L6-v2** (384 dimensions)
-- Metadata filtering support with `None` value handling
-- All 5,086 documents successfully embedded
-
-**Key Decisions:**
-
-- Chose `all-MiniLM-L6-v2` over multilingual model for better accuracy
-- Optimized for Chinese language queries
-- Filtered `None` values from metadata to prevent errors
-
-**Results:**
-
-- ✅ All 5,086 documents embedded and stored
-- ✅ Similarity search tested and validated
-- ✅ Distance range: 0.5-1.5 for good matches
-- ✅ Query speed: < 100ms
-- ✅ Database size: ~15-20 MB
-
-**Output:**
-
-- Local vector database ready for RAG pipeline
-- Verified retrieval accuracy with test queries
-- Ready for Chapter 05 integration
 
 </details>
 
