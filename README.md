@@ -143,7 +143,7 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 ### **1. Clone Repository**
 
 ```bash
-git clone https://github.com/yourusername/travel_rag.git
+git clone https://github.com/chgwyellow/travel_rag.git
 cd travel_rag
 ```
 
@@ -164,31 +164,48 @@ poetry install
 cp .env.example .env
 
 # Edit .env and add your API keys
-GOOGLE_API_KEY=your_gemini_api_key_here
-PINECONE_API_KEY=your_pinecone_api_key_here  # For deployment
-PINECONE_ENV=your_pinecone_environment
+GEOAPIFY_API_KEY=your_geoapify_api_key_here
+EMAIL=your_email@example.com  # For Wikipedia API User-Agent
+GOOGLE_API_KEY=your_gemini_api_key_here  # For future RAG pipeline
 ```
 
-### **4. Download Data**
+### **4. Run Data Collection Pipeline**
 
-Download the dataset and place it in `data/raw/`:
+Execute the automated data pipeline to collect and enrich Seattle attractions:
 
 ```bash
-# Download from source
-wget https://media.taiwan.net.tw/XMLReleaseALL_public/scenic_spot_C_f.json \
-  -O data/raw/scenic_spot.json
+# Run the complete pipeline (Chapters 1-2)
+poetry run python scripts/ingest_data.py
 ```
 
-### **5. Run Jupyter Notebooks**
+This will:
+
+- Fetch attractions from Geoapify API
+- Filter attractions with Wikipedia links
+- Enrich with Wikipedia descriptions
+- Create RAG-ready documents
+
+**Output files** (in `data/`):
+
+- `raw/Seattle_attractions_raw.json` - Raw Geoapify data
+- `processed/Seattle_attractions_with_wikipedia.json` - Filtered attractions
+- `processed/Seattle_attractions_enriched.json` - Enriched with descriptions
+- `processed/Seattle_attractions_documents.json` - RAG-ready documents
+
+### **5. Explore with Jupyter Notebooks (Optional)**
 
 ```bash
-# Start Jupyter
+# Start Jupyter to explore the data collection process
 poetry run jupyter lab
 
-# Open notebooks in order (01 → 02 → ...)
+# Open notebooks:
+# - 01_data_exploration.ipynb (Geoapify API exploration)
+# - 02_data_enrichment.ipynb (Wikipedia enrichment process)
 ```
 
-### **6. Run Streamlit App (After completing notebooks)**
+### **6. Run Streamlit App (Coming Soon)**
+
+After completing RAG pipeline implementation:
 
 ```bash
 poetry run streamlit run src/app/app.py
