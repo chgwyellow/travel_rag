@@ -13,8 +13,44 @@ def fetch_and_save_attractions(
     api_key: str,
     categories: str = "tourism",
     limit: int = 500,
-):
-    """Calling Geoapify API and save raw data"""
+) -> list:
+    """
+    Fetch attractions from Geoapify API and save raw data to file.
+
+    This function calls the Geoapify Places API to retrieve attractions within
+    a specified bounding box and immediately saves the raw response to the
+    data lake for data engineering best practices.
+
+    Args:
+        city_bbox: Dictionary containing bounding box coordinates with keys:
+                   'lon_min', 'lat_min', 'lon_max', 'lat_max'
+        api_key: Geoapify API key for authentication
+        categories: Category filter for places (default: "tourism")
+        limit: Maximum number of results to return (default: 500)
+
+    Returns:
+        list: List of GeoJSON features representing attractions
+
+    Raises:
+        requests.HTTPError: If API returns non-2xx status code
+        requests.RequestException: If network request fails
+        KeyError/IndexError: If response structure is unexpected
+
+    Example:
+        >>> bbox = {
+        ...     "lon_min": -122.45,
+        ...     "lat_min": 47.48,
+        ...     "lon_max": -122.22,
+        ...     "lat_max": 47.73
+        ... }
+        >>> attractions = fetch_and_save_attractions(bbox, "your_api_key")
+        >>> print(f"Found {len(attractions)} attractions")
+
+    Note:
+        - Raw data is automatically saved to RAW_DATA_DIR
+        - File is named as "{city}_attractions_raw.json"
+        - City name is extracted from the first attraction's properties
+    """
 
     # bbox format: rect:lon_min,lat_min,lon_max,lat_max
     filter_box = f"rect:{city_bbox["lon_min"]},{city_bbox["lat_min"]},{city_bbox["lon_max"]},{city_bbox["lat_max"]}"
