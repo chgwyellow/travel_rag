@@ -17,6 +17,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 CHROMA_DB_DIR = PROJECT_ROOT / "chroma_db"
+EMAIL = os.getenv("EMAIL")
 
 # ===================================
 # Logger Settings
@@ -56,6 +57,7 @@ COLLECTION_NAME = "global_attractions"
 # Data Source Settings
 # ===================================
 GEOAPIFY_BASE_URL = "https://api.geoapify.com/v2/places"
+WIKIPEDIA_API_BASE = "https://{language}.wikipedia.org/w/api.php"
 TARGET_CITY = "Seattle"  # Starting city
 CITY_BBOX = {  # Bounding box for New York
     "lon_min": -122.45,

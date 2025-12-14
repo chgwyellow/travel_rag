@@ -1,7 +1,6 @@
 """Geoapify API client"""
 
 import json
-from pathlib import Path
 
 import requests
 
@@ -12,7 +11,6 @@ from src.utils.emoji_log import done, error, save
 def fetch_and_save_attractions(
     city_bbox: dict,
     api_key: str,
-    output_path: Path,
     categories: str = "tourism",
     limit: int = 500,
 ):
