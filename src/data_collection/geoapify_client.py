@@ -5,10 +5,11 @@ import json
 import requests
 
 from src.config import GEOAPIFY_BASE_URL, RAW_DATA_DIR
-from src.utils.emoji_log import done, error, save
+from src.utils.emoji_log import done, error, info, save, warn
 
 
 def fetch_and_save_attractions(
+    city_name: str,
     city_bbox: dict,
     api_key: str,
     categories: str = "tourism",
@@ -62,8 +63,19 @@ def fetch_and_save_attractions(
         "limit": 500,
     }
 
+    # Check if raw data already exists
+    raw_data_path = RAW_DATA_DIR / f"{city_name}_attractions_raw.json"
+
+    if raw_data_path.exists():
+        info(f"Loading existing raw data from {raw_data_path.name}")
+        with open(raw_data_path, "r", encoding="utf-8") as f:
+            attractions = json.load(f)
+        done(f"Loaded {len(attractions)} attractions from cache")
+        return attractions
+
     try:
         # Calling API
+        info("Calling Geoapify API and save raw data...")
         response = requests.get(url=GEOAPIFY_BASE_URL, params=params, timeout=30)
 
         # Raise error
@@ -71,11 +83,15 @@ def fetch_and_save_attractions(
 
         # Parse response
         raw_data = response.json()
-        attractions = raw_data["features"]
-        city = attractions[0]["properties"]["city"]
-        done(f"Found {len(attractions)} attractions")
+        attractions = raw_data.get("features", [])
 
-        raw_data_path = RAW_DATA_DIR / f"{city}_attractions_raw.json"
+        # Check if we got any results
+        if not attractions:
+            warn("No attractions found in this area")
+            warn(f"API response: {raw_data}")
+            return []
+
+        done(f"Found {len(attractions)} attractions")
 
         with open(raw_data_path, "w", encoding="utf-8") as f:
             json.dump(attractions, f, indent=2, ensure_ascii=False)

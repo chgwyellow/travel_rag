@@ -148,13 +148,12 @@ def batch_fetch_descriptions(
             if description:
                 success_count += 1
                 success(f"{attraction['name']}, success counts: {success_count}")
+                attraction_list.append(attraction)
             else:
                 error_count += 1
                 error(
                     f"{attraction['name']} - No description, error counts: {error_count}"
                 )
-
-            attraction_list.append(attraction)
 
             # Rate limiting
             time.sleep(rate_limit)

@@ -115,6 +115,7 @@ data/processed/*
 # Temporary data
 data/temp/
 data/cache/
+data/*.json
 
 # ===================================
 # Vector Databases

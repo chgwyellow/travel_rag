@@ -3,15 +3,13 @@
 import json
 
 from src.data_collection.wikipedia_client import batch_fetch_descriptions
-from src.utils.emoji_log import done, info, save
+from src.utils.emoji_log import info, save
 
 
 # =======================================
 # 1. Add the description to attractions and produce the stats
 # =======================================
-def enrich_attractions(
-    filtered_features, email, output_dir
-) -> tuple:
+def enrich_attractions(filtered_features, email, output_dir) -> tuple:
     """
     Enrich attractions with Wikipedia descriptions and location data.
 
@@ -39,8 +37,13 @@ def enrich_attractions(
     info("Validating data quality...")
     stats = validate_data_quality(enriched)
 
-    # 3. Save enriched data
-    city = enriched[0].get("city", "")
+    # 3. Check if we have any data to save
+    if not enriched:
+        info("No attractions to save")
+        return enriched, stats
+
+    # 4. Save enriched data
+    city = enriched[0].get("city", "unknown")
     output_file = output_dir / f"{city}_attractions_enriched.json"
 
     with open(output_file, "w", encoding="utf-8") as f:

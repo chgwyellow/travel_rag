@@ -6,19 +6,49 @@ This script orchestrates the entire data pipeline:
 3. Build RAG-ready documents
 """
 
+import argparse
+import json
 from pathlib import Path
 
-from src.config import (
-    CITY_BBOX,
-    EMAIL,
-    GEOAPIFY_API_KEY,
-    PROCESSED_DATA_DIR,
-    TARGET_CITY,
-)
+from src.config import EMAIL, GEOAPIFY_API_KEY, PROCESSED_DATA_DIR
 from src.data_collection.collector import collect_city_attraction
 from src.data_collection.document_builder import batch_create_documents
 from src.data_collection.enricher import enrich_attractions
-from src.utils.emoji_log import done, error, info, success, task
+from src.utils.emoji_log import done, error, info, success, task, warn
+
+
+def load_cities_config(config_path: Path = None):
+    """Load cities configuration from JSON file."""
+    if config_path is None:
+        config_file = Path("data/cities_config.json")
+
+    with open(config_file, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    return config["cities"]
+
+
+def get_city_config(city_name: str):
+    """Get configuration for a specific city."""
+    cities = load_cities_config()
+
+    for city in cities:
+        if city["name"].lower() == city_name.lower():
+            return city
+
+
+def list_available_cities():
+    """List all available cities from config."""
+    cities = load_cities_config()
+
+    info("Available cities:")
+    print("=" * 70)
+
+    for city in cities:
+        status = "✅ Enabled" if city.get("enabled", True) else "❌ Disabled"
+        print(f"  - {city['name']} ({city['country']}) - {status}")
+
+    print("=" * 70)
 
 
 def run_pipeline(
@@ -43,15 +73,9 @@ def run_pipeline(
     2. Chapter 2: Enrich with Wikipedia descriptions
     3. Build RAG documents
     """
-    # Use defaults from config if not provided
-    city_name = city_name or TARGET_CITY
-    city_bbox = city_bbox or CITY_BBOX
-    api_key = api_key or GEOAPIFY_API_KEY
-    email = email or EMAIL
-    output_dir = output_dir or PROCESSED_DATA_DIR
 
     try:
-        task("Starting data collection pipeline...")
+        task(f"Starting data collection pipeline for {city_name}...")
 
         # =======================================
         # 1: Data Collection
@@ -110,10 +134,49 @@ def run_pipeline(
 
 
 if __name__ == "__main__":
-    run_pipeline(
-        city_name=TARGET_CITY,
-        city_bbox=CITY_BBOX,
-        api_key=GEOAPIFY_API_KEY,
-        email=EMAIL,
-        output_dir=PROCESSED_DATA_DIR,
+    # Create CLI parser
+    parser = argparse.ArgumentParser(
+        description="Run data collection pipeline for a specific city"
     )
+    parser.add_argument(
+        "--city", type=str, help="City name (e.g., Seattle, Portland)", default=None
+    )
+    parser.add_argument("--list", action="store_true", help="List all available cities")
+    args = parser.parse_args()
+
+    # If user enters --list, show all cities and exit
+    if args.list:
+        list_available_cities()
+        exit(0)
+
+    # If user enters --city
+    if args.city:
+        # Find the specific city
+        city_config = get_city_config(args.city)
+
+        # If not found, show the error and exit
+        if not city_config:
+            error(f"City '{args.city}' not found in configuration")
+            info("Use --list to see available cities")
+            exit(1)
+
+        # If the city is disabled, asking if continue
+        if not city_config.get("enabled", True):
+            warn(f"City '{args.city}' is disabled in configuration")
+            response = input("Continue anyway? (y/n): ")
+            if response.lower() != "y":
+                exit(0)
+
+        run_pipeline(
+            city_name=city_config["name"],
+            city_bbox=city_config["bbox"],
+            api_key=GEOAPIFY_API_KEY,
+            email=EMAIL,
+            output_dir=PROCESSED_DATA_DIR,
+        )
+
+    # If there is no any parameters, show the help message and cities list
+    else:
+        parser.print_help()
+        print("\n")
+        list_available_cities()
