@@ -44,7 +44,7 @@ LangChain • Gemini 2.5 Flash • ChromaDB • Pinecone • Streamlit
 
 This project builds a complete Retrieval-Augmented Generation (RAG) system for tourism information using modern LLM technologies.
 
-**Current Status:** Data collection and enrichment complete (Chapters 01-02 completed)
+**Current Status:** Vector database setup complete (Chapters 01-03 completed)
 
 **Goal:** Create an AI-powered travel assistant that can answer questions about Seattle tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini.
 
@@ -286,6 +286,44 @@ poetry run streamlit run src/app/app.py
 - `seattle_attractions_documents.json` - RAG-ready documents
 - `metadata.json` - Updated with enrichment statistics
 - Ready for vector database ingestion
+
+</details>
+
+---
+
+<details>
+<summary><b>🔍 Chapter 03 — Vector Database Setup (ChromaDB)</b></summary>
+
+📓 `03_vector_database.ipynb`
+
+**Objectives:**
+
+- Set up ChromaDB and embedding models
+- Generate embeddings for all attraction documents
+- Implement semantic search functionality
+- Test metadata filtering capabilities
+- Validate retrieval quality
+
+**Implementation:**
+
+- HuggingFace embedding model: `sentence-transformers/all-MiniLM-L6-v2`
+- ChromaDB PersistentClient for vector storage
+- 384-dimensional embeddings for all documents
+- Semantic similarity search with score analysis
+
+**Quality Results:**
+
+- ✅ 62/62 documents indexed successfully
+- ✅ 100% test pass rate in quality validation
+- ✅ Semantic search working correctly
+- ✅ Average query time: <100ms
+- ✅ Database size: ~50 MB
+
+**Output:**
+
+- `chroma_db/` - Persistent vector database storage
+- `chroma_db/travel_attractions/` - Collection with embeddings
+- Ready for RAG pipeline integration with LLM
 
 </details>
 
