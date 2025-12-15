@@ -38,7 +38,7 @@ Description: {description}
 """
 
     return {
-        "place_id": attraction.get("plac_id"),
+        "place_id": attraction.get("place_id"),
         "name": attraction.get("name"),
         "document": doc,
     }
