@@ -10,7 +10,7 @@ from src.utils.emoji_log import done, info, save
 # =======================================
 def create_rag_document(attraction: dict) -> dict:
     """
-    Format a single attraction into RAG document.
+    Format a single attraction into RAG document with complete metadata.
 
     Document format:
         Name: ...
@@ -22,25 +22,56 @@ def create_rag_document(attraction: dict) -> dict:
         attraction: Enriched attraction data with description and location
 
     Returns:
-        dict: Document with place_id, name, and formatted document text
+        dict: Document with place_id, name, document text, and complete metadata
     """
+    # Extract basic fields
     name = attraction.get("name", "Unknown")
     address = attraction.get("address", "N/A")
     lat = attraction.get("lat", "N/A")
     lon = attraction.get("lon", "N/A")
     description = attraction.get("description", "No description available")
 
-    # Format document
+    # Format document text
     doc = f"""Name: {name}
 Location: {address}
 Coordinates: {lat}, {lon}
 Description: {description}
 """
 
+    # Extract metadata for vector database
+    # Categories: convert comma-separated string to list
+    categories_str = attraction.get("category", "")
+    categories = (
+        [cat.strip() for cat in categories_str.split(",")] if categories_str else []
+    )
+
+    # Extract country from address (last part after last comma)
+    country = "Unknown"
+    if address and address != "N/A":
+        address_parts = address.split(",")
+        if len(address_parts) > 0:
+            country = address_parts[-1].strip()  # e.g., "United States of America"
+
+    # Build complete metadata
+    metadata = {
+        "place_id": attraction.get("place_id"),
+        "name": name,
+        "city": attraction.get("city", "Unknown"),
+        "state": attraction.get("state", "Unknown"),
+        "country": country,
+        "categories": categories,
+        "lat": lat if lat != "N/A" else None,
+        "lon": lon if lon != "N/A" else None,
+        "has_description": bool(
+            description and description != "No description available"
+        ),
+    }
+
     return {
         "place_id": attraction.get("place_id"),
-        "name": attraction.get("name"),
+        "name": name,
         "document": doc,
+        "metadata": metadata,
     }
 
 
