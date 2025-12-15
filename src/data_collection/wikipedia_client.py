@@ -145,14 +145,14 @@ def batch_fetch_descriptions(
             description = fetch_description(wiki_code=wiki_code, email=email)
             attraction["description"] = description
 
-            if description:
+            if description and attraction["name"]:
                 success_count += 1
                 success(f"{attraction['name']}, success counts: {success_count}")
                 attraction_list.append(attraction)
             else:
                 error_count += 1
                 error(
-                    f"{attraction['name']} - No description, error counts: {error_count}"
+                    f"{attraction['name']} - No Name or description, error counts: {error_count}"
                 )
 
             # Rate limiting

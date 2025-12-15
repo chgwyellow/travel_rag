@@ -80,7 +80,7 @@ def batch_create_documents(attractions: list, output_dir) -> list:
     # Print sample
     info("\nSample document:")
     print("=" * 70)
-    documents[0]["document"]
+    print(documents[0]["document"])
     print("=" * 70)
 
     return documents
