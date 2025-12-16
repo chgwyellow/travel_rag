@@ -97,3 +97,24 @@ def add_documents_to_store(
         None
     """
     vector_store.add_texts(texts=documents, metadatas=metadatas, ids=ids)
+
+
+# =======================================
+# 5. Search similar documents
+# =======================================
+def search_similar_document(
+    vector_store: Chroma, query: str, k: int = 5, filter_dict: dict = None
+) -> list:
+    """
+    Search for similar documents using semantic similarity.
+
+    Args:
+        vector_store: LangChain Chroma instance
+        query: Query text
+        k: Number of results to return
+        filter_dict: Optional metadata filter
+
+    Returns:
+        List of Document objects
+    """
+    return vector_store.similarity_search(query=query, k=k, filter=filter_dict)
