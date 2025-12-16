@@ -118,3 +118,77 @@ def search_similar_document(
         List of Document objects
     """
     return vector_store.similarity_search(query=query, k=k, filter=filter_dict)
+
+
+# =======================================
+# 6. Search with similarity scores
+# =======================================
+def search_with_score(
+    vector_store: Chroma, query: str, k: int = 5, filter_dict: dict = None
+) -> list[tuple]:
+    """
+    Search for similar documents with similarity scores.
+
+    Args:
+        vector_store: LangChain Chroma instance
+        query: Query text
+        k: Number of results to return
+        filter_dict: Optional metadata filter
+
+    Returns:
+        List of (Document, score) tuples
+        Lower scores indicate higher similarity
+    """
+    return vector_store.similarity_search_with_score(
+        query=query, k=k, filter=filter_dict
+    )
+
+
+# =======================================
+# 7. Get collection document count
+# =======================================
+def get_collection_count(collection: chromadb.Collection) -> int:
+    """
+    Get the number of documents in a collection.
+
+    Args:
+        collection: ChromaDB Collection instance
+
+    Returns:
+        Number of documents
+    """
+    return collection.count()
+
+
+# =======================================
+# 8. Delete collection
+# =======================================
+def delete_collection(client: chromadb.PersistentClient, collection_name: str) -> None:
+    """
+    Delete a collection from ChromaDB.
+
+    Args:
+        client: ChromaDB client
+        collection_name: Name of collection to delete
+
+    Returns:
+        None
+    """
+    client.delete_collection(name=collection_name)
+
+
+# =======================================
+# 9. List all collections
+# =======================================
+def list_collections(client: chromadb.PersistentClient) -> list[str]:
+    """
+    List all collection names in ChromaDB.
+
+    Args:
+        client: ChromaDB client
+
+    Returns:
+        List of collection names
+    """
+    collections = client.list_collections()
+    return [col.name for col in collections]
