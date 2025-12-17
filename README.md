@@ -44,7 +44,7 @@ LangChain • Gemini 2.5 Flash • ChromaDB • Pinecone • Streamlit
 
 This project builds a complete Retrieval-Augmented Generation (RAG) system for tourism information using modern LLM technologies.
 
-**Current Status:** Vector database setup complete (Chapters 01-03 completed)
+**Current Status:** RAG Pipeline complete (Chapters 01-04 completed)
 
 **Goal:** Create an AI-powered travel assistant that can answer questions about Seattle tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini.
 
@@ -109,7 +109,9 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 │
 ├─ notebook/                    # Jupyter Notebooks (exploration)
 │  ├─ 01_data_exploration.ipynb      # Geoapify API & data collection
-│  └─ 02_data_enrichment.ipynb       # Wikipedia descriptions & location data
+│  ├─ 02_data_enrichment.ipynb       # Wikipedia descriptions & location data
+│  ├─ 03_vector_database.ipynb       # ChromaDB setup & semantic search
+│  └─ 04_rag_pipeline.ipynb          # RAG pipeline with Gemini LLM
 │
 ├─ src/
 │  ├─ app/                      # Streamlit web application
@@ -121,16 +123,20 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 │  │  ├─ enricher.py           # Chapter 2 workflow
 │  │  └─ document_builder.py   # RAG document formatting
 │  ├─ rag/                      # RAG pipeline implementation
-│  │  └─ pipeline.py
+│  │  ├─ embeddings.py         # Embedding model management
+│  │  ├─ vector_store.py       # ChromaDB vector store operations
+│  │  ├─ llm.py                # LLM (Gemini) management
+│  │  ├─ prompts.py            # Prompt template management
+│  │  └─ rag_chain.py          # RAG chain assembly
 │  ├─ utils/                    # Utilities
 │  │  ├─ logger.py
 │  │  └─ emoji_log.py          # Emoji-enhanced logging
 │  └─ config.py                 # Configuration management
 │
 ├─ scripts/                     # Utility scripts
-│  ├─ setup_chromadb.py
-│  ├─ ingest_data.py
-│  └─ test_rag.py
+│  ├─ ingest_data.py           # Data collection automation
+│  ├─ setup_chromadb.py        # Vector database setup
+│  └─ test_rag.py              # RAG system testing
 │
 ├─ .env.example                 # Environment variables template
 ├─ .gitignore
@@ -223,7 +229,30 @@ This will:
 - `chroma_db/` directory with vector database
 - Ready for semantic search and RAG pipeline
 
-### **6. Explore with Jupyter Notebooks (Optional)**
+### **6. Test RAG System**
+
+Test the complete RAG question-answering pipeline:
+
+```bash
+# Test with default question
+poetry run python scripts/test_rag.py
+
+# Test with custom question
+poetry run python scripts/test_rag.py --question "What are some museums in Seattle?"
+
+# Test location-based query
+poetry run python scripts/test_rag.py --question "Tell me about attractions near Pike Place Market"
+```
+
+This will:
+
+- Load vector store and embedding model
+- Initialize Google Gemini LLM
+- Build RAG chain with prompt template
+- Execute semantic search and generate answer
+- Display natural language response
+
+### **7. Explore with Jupyter Notebooks**
 
 ```bash
 # Start Jupyter to explore the data collection process
@@ -232,9 +261,11 @@ poetry run jupyter lab
 # Open notebooks:
 # - 01_data_exploration.ipynb (Geoapify API exploration)
 # - 02_data_enrichment.ipynb (Wikipedia enrichment process)
+# - 03_vector_database.ipynb (ChromaDB setup)
+# - 04_rag_pipeline.ipynb (RAG pipeline with LLM)
 ```
 
-### **6. Run Streamlit App (Coming Soon)**
+### **8. Run Streamlit App (Coming Soon)**
 
 After completing RAG pipeline implementation:
 
@@ -355,6 +386,59 @@ poetry run streamlit run src/app/app.py
 - `chroma_db/` - Persistent vector database storage
 - `chroma_db/travel_attractions/` - Collection with embeddings
 - Ready for RAG pipeline integration with LLM
+
+</details>
+
+---
+
+<details>
+<summary><b>🤖 Chapter 04 — RAG Pipeline with LLM</b></summary>
+
+📓 `04_rag_pipeline.ipynb`
+
+**Objectives:**
+
+- Integrate Google Gemini 2.5 Flash LLM
+- Build complete RAG question-answering pipeline
+- Design effective prompt templates
+- Test and evaluate response quality
+
+**Implementation:**
+
+- **LLM**: Google Gemini 2.0 Flash (experimental)
+- **Retriever**: ChromaDB similarity search (k=5)
+- **Prompt Engineering**: Travel assistant with context-based answering
+- **Chain**: LangChain Expression Language (LCEL) pipeline
+
+**Modules Created:**
+
+- `src/rag/llm.py` - LLM management functions
+- `src/rag/prompts.py` - Prompt template management
+- `src/rag/rag_chain.py` - RAG chain assembly
+- `scripts/test_rag.py` - RAG testing script
+
+**Test Results:**
+
+- ✅ Basic Q&A: Accurate answers for simple questions
+- ✅ Complex queries: Successfully handled multi-part questions
+- ✅ Out-of-scope: Correctly refused questions outside database
+- ✅ Location queries: Found nearby attractions effectively
+
+**Example Usage:**
+
+```bash
+# Test RAG system with default question
+poetry run python scripts/test_rag.py
+
+# Test with custom question
+poetry run python scripts/test_rag.py --question "What are museums in Seattle?"
+```
+
+**Output:**
+
+- Functional RAG pipeline ready for deployment
+- Natural language responses based on vector database
+- Source-grounded answers (no hallucination)
 
 </details>
 
