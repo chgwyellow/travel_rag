@@ -39,11 +39,8 @@ Description: {description}
 """
 
     # Extract metadata for vector database
-    # Categories: convert comma-separated string to list
+    # Categories: keep as comma-separated string (ChromaDB doesn't support list)
     categories_str = attraction.get("category", "")
-    categories = (
-        [cat.strip() for cat in categories_str.split(",")] if categories_str else []
-    )
 
     # Extract country from address (last part after last comma)
     country = "Unknown"
@@ -53,13 +50,14 @@ Description: {description}
             country = address_parts[-1].strip()  # e.g., "United States of America"
 
     # Build complete metadata
+    # Note: ChromaDB only supports str, int, float, bool, or None
     metadata = {
         "place_id": attraction.get("place_id"),
         "name": name,
         "city": attraction.get("city", "Unknown"),
         "state": attraction.get("state", "Unknown"),
         "country": country,
-        "categories": categories,
+        "categories": categories_str,  # Keep as string, not list
         "lat": lat if lat != "N/A" else None,
         "lon": lon if lon != "N/A" else None,
         "has_description": bool(
