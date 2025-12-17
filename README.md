@@ -58,13 +58,16 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 
 ## 📊 Current Dataset
 
-- **Region**: Seattle, Washington, USA
+- **Cities**: 13 major US cities
+  - Seattle, New York, Washington DC, Chicago, San Francisco
+  - Boston, Portland, Austin, Denver, Miami
+  - Nashville, New Orleans, Las Vegas
 - **Primary Source**: [Geoapify Places API](https://www.geoapify.com/)
 - **Secondary Source**: [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page)
-- **Records**: 62 attractions with Wikipedia descriptions
-- **Coverage**: Seattle metropolitan area
+- **Total Records**: ~1,000+ attractions with Wikipedia descriptions
+- **Largest Dataset**: Washington DC (264 attractions)
 - **Format**: JSON (enriched with location data and descriptions)
-- **Fields**: Name, Description, Location (lat/lon), Address, Categories, Place ID
+- **Fields**: Name, Description, Location (lat/lon), Address, Categories, Place ID, City, State, Country
 
 ## 🛠️ Tech Stack
 
@@ -192,7 +195,35 @@ This will:
 - `processed/Seattle_attractions_enriched.json` - Enriched with descriptions
 - `processed/Seattle_attractions_documents.json` - RAG-ready documents
 
-### **5. Explore with Jupyter Notebooks (Optional)**
+### **5. Build Vector Database**
+
+After collecting and enriching the data, build the ChromaDB vector database:
+
+```bash
+# Build vector database for Seattle (default)
+poetry run python scripts/setup_chromadb.py
+
+# Or specify a different city
+poetry run python scripts/setup_chromadb.py --city "New York"
+
+# Custom collection name
+poetry run python scripts/setup_chromadb.py --city Seattle --collection my_attractions
+```
+
+This will:
+
+- Load processed documents from `data/processed/`
+- Create HuggingFace embedding model (all-MiniLM-L6-v2)
+- Initialize ChromaDB persistent client
+- Generate 384-dimensional embeddings for all documents
+- Store documents with metadata in ChromaDB
+
+**Output:**
+
+- `chroma_db/` directory with vector database
+- Ready for semantic search and RAG pipeline
+
+### **6. Explore with Jupyter Notebooks (Optional)**
 
 ```bash
 # Start Jupyter to explore the data collection process
