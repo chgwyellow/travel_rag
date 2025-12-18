@@ -6,8 +6,8 @@ All functions are stateless and composable.
 
 from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_core.runnables import Runnable, RunnableParallel, RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 
@@ -93,3 +93,79 @@ def query_rag(chain, question: str) -> str:
         'Some popular attractions include...'
     """
     return chain.invoke(question)
+
+
+# =======================================
+# 4. Create conversational rag chain with sources
+# =======================================
+def create_conversational_rag_chain_with_sources(
+    llm: ChatGoogleGenerativeAI,
+    vector_store: Chroma,
+    prompt: ChatPromptTemplate,
+    k: int = 5,
+) -> Runnable:
+    """
+    Create a conversational RAG chain that returns both answer and source documents.
+    This chain:
+    1. Preserves chat history using RunnablePassthrough.assign()
+    2. Retrieves relevant documents from vector store
+    3. Generates answer using LLM with conversation context
+    4. Returns both answer and source documents using RunnableParallel
+    Args:
+        llm: ChatGoogleGenerativeAI instance
+        vector_store: Chroma vector store instance
+        prompt: ChatPromptTemplate with MessagesPlaceholder for chat_history
+        k: Number of documents to retrieve (default: 5)
+
+    Returns:
+        Runnable chain that returns {"answer": str, "source_documents": list[Document]}
+
+    Example:
+        >>> from src.rag.prompts import get_conversational_rag_prompt
+        >>> from src.rag.llm import create_llm
+        >>> from src.rag.vector_store import create_vector_store
+        >>> from src.rag.embeddings import create_embedding_model
+        >>>
+        >>> # Setup
+        >>> embeddings = create_embedding_model()
+        >>> vector_store = create_vector_store("travel_attractions", embeddings)
+        >>> llm = create_llm()
+        >>> prompt = get_conversational_rag_prompt()
+        >>>
+        >>> # Create chain
+        >>> chain = create_conversational_rag_chain_with_sources(
+        ...     llm, vector_store, prompt
+        ... )
+        >>>
+        >>> # Use with RunnableWithMessageHistory
+        >>> from langchain_core.runnables.history import RunnableWithMessageHistory
+        >>> from src.rag.memory import get_session_history
+        >>>
+        >>> conversational_chain = RunnableWithMessageHistory(
+        ...     chain,
+        ...     get_session_history,
+        ...     input_messages_key="question",
+        ...     history_messages_key="chat_history",
+        ...     output_messages_key="answer"
+        ... )
+    Note:
+        This chain must be wrapped with RunnableWithMessageHistory to enable
+        conversation memory. The output_messages_key="answer" is required to
+        tell RunnableWithMessageHistory where to find the answer in the output dict.
+    """
+    retriever = vector_store.as_retriever(
+        search_type="similarity", search_kwargs={"k": k}
+    )
+
+    # Focus on retrieve the final answer for user
+    answer_chain = prompt | llm | StrOutputParser()
+
+    chain = RunnablePassthrough.assign(
+        # Create docs, context, question
+        docs=lambda x: retriever.invoke(x["question"]),
+        context=lambda x: format_docs(retriever.invoke(x["question"])),
+    ) | RunnableParallel(
+        {"answer": answer_chain, "source_documents": lambda x: x["docs"]}
+    )
+
+    return chain
