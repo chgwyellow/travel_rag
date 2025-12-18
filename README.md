@@ -44,7 +44,7 @@ LangChain • Gemini 2.5 Flash • ChromaDB • Pinecone • Streamlit
 
 This project builds a complete Retrieval-Augmented Generation (RAG) system for tourism information using modern LLM technologies.
 
-**Current Status:** RAG Pipeline complete (Chapters 01-04 completed)
+**Current Status:** Conversational RAG with Citations (Chapters 01-05 completed)
 
 **Goal:** Create an AI-powered travel assistant that can answer questions about Seattle tourism by retrieving relevant information from a vector database and generating natural language responses using Google Gemini.
 
@@ -111,7 +111,8 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 │  ├─ 01_data_exploration.ipynb      # Geoapify API & data collection
 │  ├─ 02_data_enrichment.ipynb       # Wikipedia descriptions & location data
 │  ├─ 03_vector_database.ipynb       # ChromaDB setup & semantic search
-│  └─ 04_rag_pipeline.ipynb          # RAG pipeline with Gemini LLM
+│  ├─ 04_rag_pipeline.ipynb          # RAG pipeline with Gemini LLM
+│  └─ 05_conversational_rag.ipynb    # Conversation memory & source citations
 │
 ├─ src/
 │  ├─ app/                      # Streamlit web application
@@ -444,6 +445,70 @@ poetry run python scripts/test_rag.py --question "What are museums in Seattle?"
 
 ---
 
+<details>
+<summary><b>💬 Chapter 05 — Conversation Memory & Source Citations</b></summary>
+
+📓 `05_conversational_rag.ipynb`
+
+**Objectives:**
+
+- Add conversation memory for multi-turn dialogues
+- Implement source citations for transparency
+- Enhance RAG system with context awareness
+- Format citations for easy verification
+
+**Implementation:**
+
+- **Memory**: `ChatMessageHistory` with session management
+- **Context**: `MessagesPlaceholder` for chat history in prompts
+- **Citations**: `RunnableParallel` to return both answers and sources
+- **Formatting**: Detailed citation formatter with metadata
+
+**Key Components:**
+
+- `RunnableWithMessageHistory` - Manages conversation sessions
+- `RunnableParallel` - Returns answer + source documents simultaneously
+- `format_citations_detailed()` - Formats sources for display
+- Session-based history storage
+
+**Features:**
+
+- ✅ Multi-turn conversations with context memory
+- ✅ Understands pronouns and references (e.g., "it", "there")
+- ✅ Provides verifiable source documents
+- ✅ Formatted citations with location and metadata
+- ✅ Session isolation for multiple users
+
+**Example:**
+
+```python
+# Turn 1
+result = conversational_chain_with_history_and_sources.invoke(
+    {"question": "What is the Space Needle?"},
+    config={"configurable": {"session_id": "user_123"}}
+)
+
+# Turn 2 (remembers context)
+result = conversational_chain_with_history_and_sources.invoke(
+    {"question": "How tall is it?"},  # "it" = Space Needle
+    config={"configurable": {"session_id": "user_123"}}
+)
+
+# Display answer and sources
+print(result["answer"])
+print(format_citations_detailed(result["source_documents"]))
+```
+
+**Output:**
+
+- Conversational RAG system with memory
+- Source citations for every answer
+- Ready for Streamlit deployment
+
+</details>
+
+---
+
 ## 🧩 RAG Pipeline Architecture
 
 ```mermaid
@@ -521,9 +586,11 @@ class G,H1,H2 ui
 ## 🔮 Future Work
 
 - [ ] **Additional Data Sources** - Restaurants, hotels, activities
-- [ ] **Conversation History** - Multi-turn dialogue support
+- [x] **Conversation History** - Multi-turn dialogue support ✅ (Chapter 05)
+- [x] **Source Citations** - Verifiable answer sources ✅ (Chapter 05)
 - [ ] **Map Integration** - Interactive geo-spatial visualization
 - [ ] **Response Evaluation** - Quality metrics and user feedback
+- [ ] **Streamlit Deployment** - Deploy to Streamlit Cloud
 - [ ] **API Deployment** - RESTful API for integration
 
 ---
