@@ -461,13 +461,15 @@ poetry run python scripts/test_rag.py --question "What are museums in Seattle?"
 
 - **Memory**: `ChatMessageHistory` with session management
 - **Context**: `MessagesPlaceholder` for chat history in prompts
+- **Data Flow**: `RunnablePassthrough.assign()` to preserve chat history
 - **Citations**: `RunnableParallel` to return both answers and sources
 - **Formatting**: Detailed citation formatter with metadata
 
 **Key Components:**
 
-- `RunnableWithMessageHistory` - Manages conversation sessions
+- `RunnablePassthrough.assign()` - Preserves chat history while adding retrieved docs
 - `RunnableParallel` - Returns answer + source documents simultaneously
+- `RunnableWithMessageHistory` - Manages conversation sessions with `output_messages_key`
 - `format_citations_detailed()` - Formats sources for display
 - Session-based history storage
 
@@ -498,6 +500,10 @@ result = conversational_chain_with_history_and_sources.invoke(
 print(result["answer"])
 print(format_citations_detailed(result["source_documents"]))
 ```
+
+**Technical Note:**
+
+The implementation uses `RunnablePassthrough.assign()` instead of custom functions to ensure `chat_history` is preserved throughout the chain. This is critical for conversation memory to work correctly. The `output_messages_key="answer"` parameter tells `RunnableWithMessageHistory` where to find the answer in the output dictionary for storage.
 
 **Output:**
 
