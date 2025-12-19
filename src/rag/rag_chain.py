@@ -7,7 +7,12 @@ All functions are stateless and composable.
 from langchain_chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_core.runnables import Runnable, RunnableParallel, RunnablePassthrough
+from langchain_core.runnables import (
+    Runnable,
+    RunnableLambda,
+    RunnableParallel,
+    RunnablePassthrough,
+)
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 
@@ -106,11 +111,14 @@ def create_conversational_rag_chain_with_sources(
 ) -> Runnable:
     """
     Create a conversational RAG chain that returns both answer and source documents.
+
     This chain:
     1. Preserves chat history using RunnablePassthrough.assign()
     2. Retrieves relevant documents from vector store
-    3. Generates answer using LLM with conversation context
-    4. Returns both answer and source documents using RunnableParallel
+    3. Checks if documents were found (early return if none to save API costs)
+    4. Generates answer using LLM with conversation context (only if docs exist)
+    5. Returns both answer and source documents using RunnableParallel
+
     Args:
         llm: ChatGoogleGenerativeAI instance
         vector_store: Chroma vector store instance
@@ -148,24 +156,48 @@ def create_conversational_rag_chain_with_sources(
         ...     history_messages_key="chat_history",
         ...     output_messages_key="answer"
         ... )
+
     Note:
         This chain must be wrapped with RunnableWithMessageHistory to enable
         conversation memory. The output_messages_key="answer" is required to
         tell RunnableWithMessageHistory where to find the answer in the output dict.
+
+        Performance Optimization:
+        If no relevant documents are found in the vector store, the chain will
+        return a default message immediately without calling the LLM, saving API
+        costs and reducing response time.
     """
+
     retriever = vector_store.as_retriever(
         search_type="similarity", search_kwargs={"k": k}
     )
 
-    # Focus on retrieve the final answer for user
-    answer_chain = prompt | llm | StrOutputParser()
+    def retriever_with_check(x):
+        """Retrieve documents and add metadata."""
+        docs = retriever.invoke(x["question"])
 
-    chain = RunnablePassthrough.assign(
-        # Create docs, context, question
-        docs=lambda x: retriever.invoke(x["question"]),
-        context=lambda x: format_docs(retriever.invoke(x["question"])),
-    ) | RunnableParallel(
-        {"answer": answer_chain, "source_documents": lambda x: x["docs"]}
+        return {
+            "question": x["question"],
+            "chat_history": x.get("chat_history", []),
+            "docs": docs,
+            "context": format_docs(docs) if docs else "",
+        }
+
+    def smart_answer(x):
+        """Generate answer only if documents exist."""
+        if not x["docs"]:
+            # No documents, skip LLM
+            return "I don't have information about that in my database. Please try asking about Seattle tourist attractions."
+
+        # Documents found - use LLM
+        answer_chain = prompt | llm | StrOutputParser()
+        return answer_chain.invoke(x)
+
+    chain = RunnableLambda(retriever_with_check) | RunnableParallel(
+        {
+            "answer": RunnableLambda(smart_answer),
+            "source_documents": lambda x: x["docs"],
+        }
     )
 
     return chain
