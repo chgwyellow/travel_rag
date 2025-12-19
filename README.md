@@ -128,7 +128,10 @@ This project builds a complete Retrieval-Augmented Generation (RAG) system for t
 │  │  ├─ vector_store.py       # ChromaDB vector store operations
 │  │  ├─ llm.py                # LLM (Gemini) management
 │  │  ├─ prompts.py            # Prompt template management
-│  │  └─ rag_chain.py          # RAG chain assembly
+│  │  ├─ rag_chain.py          # RAG chain assembly
+│  │  ├─ memory.py             # Conversation memory management
+│  │  ├─ citations.py          # Source citation formatting
+│  │  └─ cli.py                # Command-line interface utilities
 │  ├─ utils/                    # Utilities
 │  │  ├─ logger.py
 │  │  └─ emoji_log.py          # Emoji-enhanced logging
@@ -232,7 +235,9 @@ This will:
 
 ### **6. Test RAG System**
 
-Test the complete RAG question-answering pipeline:
+Test the complete conversational RAG question-answering pipeline with memory and source citations:
+
+#### **Single Query Mode**
 
 ```bash
 # Test with default question
@@ -241,17 +246,50 @@ poetry run python scripts/test_rag.py
 # Test with custom question
 poetry run python scripts/test_rag.py --question "What are some museums in Seattle?"
 
-# Test location-based query
-poetry run python scripts/test_rag.py --question "Tell me about attractions near Pike Place Market"
+# Test with specific session ID
+poetry run python scripts/test_rag.py --question "What is the Space Needle?" --session "my_session"
+```
+
+#### **Interactive Mode** (Multi-turn Conversation)
+
+```bash
+# Start interactive mode
+poetry run python scripts/test_rag.py --interactive
+
+# Interactive mode with custom session
+poetry run python scripts/test_rag.py --interactive --session "chat_001"
+```
+
+**Interactive Commands:**
+
+- Type your question to ask
+- `history` - Show conversation history
+- `clear` - Clear conversation history
+- `quit` or `exit` - Exit interactive mode
+
+**Example Conversation:**
+
+```
+Turn 1 Your Question: What is the Space Needle?
+Answer: The Space Needle is an observation tower in Seattle...
+
+Turn 2 Your Question: How tall is it?
+Answer: The Space Needle is 605 ft (184 m) high...  ← Remembers "it" = Space Needle
+
+Turn 3 Your Question: history
+1. User: What is the Space Needle?
+2. AI Assistant: The Space Needle is an observation tower...
+3. User: How tall is it?
+4. AI Assistant: The Space Needle is 605 ft...
 ```
 
 This will:
 
 - Load vector store and embedding model
-- Initialize Google Gemini LLM
-- Build RAG chain with prompt template
-- Execute semantic search and generate answer
-- Display natural language response
+- Initialize Google Gemini LLM with conversation memory
+- Build conversational RAG chain with source citations
+- Execute query and display answer with formatted sources
+- Maintain conversation history across multiple turns (interactive mode)
 
 ### **7. Explore with Jupyter Notebooks**
 
@@ -505,10 +543,21 @@ print(format_citations_detailed(result["source_documents"]))
 
 The implementation uses `RunnablePassthrough.assign()` instead of custom functions to ensure `chat_history` is preserved throughout the chain. This is critical for conversation memory to work correctly. The `output_messages_key="answer"` parameter tells `RunnableWithMessageHistory` where to find the answer in the output dictionary for storage.
 
+**Modules Created:**
+
+- `src/rag/memory.py` - Conversation memory management
+- `src/rag/citations.py` - Source citation formatting
+- `src/rag/cli.py` - Command-line interface utilities
+- Updated `src/rag/prompts.py` - Added conversational prompt template
+- Updated `src/rag/rag_chain.py` - Added conversational chain with sources
+- Updated `scripts/test_rag.py` - Added interactive mode
+
 **Output:**
 
 - Conversational RAG system with memory
 - Source citations for every answer
+- Interactive CLI for multi-turn conversations
+- Modular, reusable components
 - Ready for Streamlit deployment
 
 </details>
